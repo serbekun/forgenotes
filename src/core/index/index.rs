@@ -1,21 +1,21 @@
-use crate::core::index::index_entry::IndexEntry;
-use crate::core::model::types::Types;
-use serde::{Deserialize, Serialize};
-use std::cell::RefCell;
-use std::fs;
-use std::{collections::HashMap, path::PathBuf};
 
+use bimap::BiHashMap;
+use std::collections::HashMap;
+use std::fs;
+use std::path::PathBuf;
 use uuid::Uuid;
+
+use crate::core::index::index_entry::IndexEntry;
 
 #[derive(Default)]
 pub struct Index {
-    index: HashMap<Uuid, IndexEntry>,
+    index: BiHashMap<Uuid, IndexEntry>,
     path_to_index_file: PathBuf,
 }
 
 impl Index {
     pub fn new(path_to_index_file: PathBuf) -> Self {
-        match read_index_hash_map_from_file(&path_to_index_file) {
+        match Self::read_index_hash_map_from_file(&path_to_index_file) {
             Ok(index_map) => {
                 return Self {
                     index: index_map,
@@ -25,14 +25,14 @@ impl Index {
             Err(e) => {
                 eprintln!("Failed to load index: {}", e);
                 Self {
-                    index: HashMap::new(),
+                    index: BiHashMap::new(),
                     path_to_index_file,
                 }
             }
         }
     }
 
-    /// Saves the index hashmap to a file on disk.
+    /// Saves the index to a file on disk.
     ///
     /// Serializes the in-memory index into JSON and writes it to the given path.
     ///
@@ -60,7 +60,7 @@ impl Index {
     /// assert!(std::fs::metadata(path_to_index_file).is_ok());
     /// ```
     pub fn save(&self) -> Result<(), Box<dyn std::error::Error>> {
-        let content = serde_json::to_string_pretty(&self.index)?;
+        let content = serde_json::to_string_pretty(&self.index.iter().collect::<HashMap<_, _>>())?;
         fs::write(&self.path_to_index_file, content)?;
         Ok(())
     }
@@ -72,26 +72,50 @@ impl Index {
     ///
     ///
     pub fn add_uuid(&mut self, uuid: Uuid, index_entry: IndexEntry) {
-        self.index.insert(uuid, index_entry);
+        let _ = self.index.insert(uuid, index_entry);
     }
 
-    pub fn remove_uuid(&mut self, uuid: Uuid) {
-        self.index.remove(&uuid);
+    pub fn remove_uuid(&mut self, uuid: &Uuid) {
+        let _ = self.index.remove_by_left(uuid);
     }
 
-    pub fn get_by_uuid(&self, uuid: Uuid) -> Option<&IndexEntry> {
-        self.index.get(&uuid)
+    pub fn remove_path(&mut self, path: &PathBuf) {
+        let uuid_to_remove = self
+            .index
+            .iter()
+            .find(|(_, entry)| &entry.path == path)
+            .map(|(uuid, _)| uuid.clone());
+        if let Some(uuid) = uuid_to_remove {
+            let _ = self.index.remove_by_left(&uuid);
+        }
     }
-}
 
-fn read_index_hash_map_from_file(
-    path: &PathBuf,
-) -> Result<HashMap<Uuid, IndexEntry>, Box<dyn std::error::Error>> {
-    let content = fs::read_to_string(path)?;
 
-    let map: HashMap<Uuid, IndexEntry> = serde_json::from_str(&content)?;
+    pub fn get_by_uuid(&self, uuid: &Uuid) -> Option<&IndexEntry> {
+        self.index.get_by_left(uuid)
+    }
 
-    Ok(map)
+    pub fn get_by_path(&self, path: &PathBuf) -> Option<&Uuid> {
+        self.index
+            .iter()
+            .find(|(_, entry)| &entry.path == path)
+            .map(|(uuid, _)| uuid)
+    }
+
+    fn read_index_hash_map_from_file(
+        path: &PathBuf,
+    ) -> Result<BiHashMap<Uuid, IndexEntry>, Box<dyn std::error::Error>> {
+        if !path.exists() {
+            return Ok(BiHashMap::new());
+        }
+        let content = fs::read_to_string(path)?;
+        let map: HashMap<Uuid, IndexEntry> = serde_json::from_str(&content)?;
+        let mut bimap = BiHashMap::new();
+        for (k, v) in map {
+            let _ = bimap.insert(k, v);
+        }
+        Ok(bimap)
+    }
 }
 
 #[cfg(test)]

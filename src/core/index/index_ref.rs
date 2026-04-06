@@ -1,5 +1,5 @@
-use super::index::Index;
 use crate::core::index::index_entry::IndexEntry;
+use super::index::Index;
 use std::cell::RefCell;
 use std::path::PathBuf;
 use uuid::Uuid;
@@ -33,10 +33,10 @@ impl IndexRef {
     }
 
     pub fn remove_uuid(&self, uuid: Uuid) {
-        self.inner.borrow_mut().remove_uuid(uuid);
+        self.inner.borrow_mut().remove_uuid(&uuid);
     }
 
     pub fn get_by_uuid(&self, uuid: Uuid) -> Option<IndexEntry> {
-        self.inner.borrow().get_by_uuid(uuid).cloned()
+        self.inner.borrow().get_by_uuid(&uuid).cloned()
     }
 }

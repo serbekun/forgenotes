@@ -1,7 +1,7 @@
+use crate::core::repository::repository_errors::RepositoryError;
+use crate::core::repository::repository::Repository;
 use crate::core::index::index_entry::IndexEntry;
 use crate::core::index::index_ref::IndexRef;
-use crate::core::repository::repository::Repository;
-use crate::core::repository::repository_errors::RepositoryError;
 use std::fs;
 
 use crate::core::model::types::*;
@@ -33,7 +33,9 @@ impl<'a, T: HasId + DeserializeOwned> Repository<'a> for GenericRepository<'a, T
     fn get_by_uuid(&self, uuid: Uuid) -> Result<T, RepositoryError> {
         let index_entry = {
             let guard = self.index.borrow();
-            let entry = guard.get_by_uuid(uuid).ok_or(RepositoryError::NotFound)?;
+            let entry = guard
+                .get_by_uuid(&uuid)
+                .ok_or(RepositoryError::NotFound)?;
 
             if entry.entity_type != self.entity_type {
                 return Err(RepositoryError::TypeMismatch {

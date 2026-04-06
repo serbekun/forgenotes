@@ -1,5 +1,5 @@
-use crate::core::index::index_ref::IndexRef;
 use crate::core::repository::repository_errors::RepositoryError;
+use crate::core::index::index_ref::IndexRef;
 use std::path::PathBuf;
 use uuid::Uuid;
 
