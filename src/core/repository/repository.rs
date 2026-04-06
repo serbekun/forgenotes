@@ -1,4 +1,4 @@
-use crate::core::index::index::Index;
+use crate::core::index::index_ref::IndexRef;
 use crate::core::repository::repository_errors::RepositoryError;
 use std::path::PathBuf;
 use uuid::Uuid;
@@ -6,7 +6,7 @@ use uuid::Uuid;
 pub trait Repository<'a> {
     type Entity;
 
-    fn new(index: &'a mut Index) -> Self;
+    fn new(index: &'a IndexRef) -> Self;
 
     /// Return repository name
     fn name() -> &'static str;

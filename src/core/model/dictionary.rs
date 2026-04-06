@@ -1,6 +1,6 @@
+use crate::core::model::types::*;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
-use crate::core::model::types::*;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Dictionary {
@@ -26,6 +26,10 @@ pub struct Metadata {
 }
 
 impl HasId for Dictionary {
-    fn id(&self) -> Uuid { self.id }
-    fn entity_type() -> Types { Types::Dictionary }
+    fn id(&self) -> Uuid {
+        self.id
+    }
+    fn entity_type() -> Types {
+        Types::Dictionary
+    }
 }

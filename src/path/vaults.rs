@@ -47,10 +47,10 @@ impl Vaults {
 
     ///
     /// Return all dirs needed inside base folder.
-    /// 
+    ///
     /// # Return
     /// Vec<PathBuf> with all folders paths.
-    /// 
+    ///
     pub fn all_dir_paths(&self) -> Vec<PathBuf> {
         vec![
             self.notes_path().into(),

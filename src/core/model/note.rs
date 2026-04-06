@@ -1,7 +1,7 @@
 //! note file DTO (main kind of file)
+use crate::core::model::types::*;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
-use crate::core::model::types::*;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Note {
@@ -25,6 +25,10 @@ pub struct NoteMetadata {
 }
 
 impl HasId for Note {
-    fn id(&self) -> Uuid { self.id }
-    fn entity_type() -> Types { Types::Note }
+    fn id(&self) -> Uuid {
+        self.id
+    }
+    fn entity_type() -> Types {
+        Types::Note
+    }
 }

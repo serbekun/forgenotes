@@ -1,19 +1,16 @@
+use crate::core::index::index_entry::IndexEntry;
 use crate::core::model::types::Types;
 use serde::{Deserialize, Serialize};
+use std::cell::RefCell;
 use std::fs;
 use std::{collections::HashMap, path::PathBuf};
 
 use uuid::Uuid;
 
+#[derive(Default)]
 pub struct Index {
     index: HashMap<Uuid, IndexEntry>,
     path_to_index_file: PathBuf,
-}
-
-#[derive(Serialize, Deserialize)]
-pub struct IndexEntry {
-    pub path: PathBuf,
-    pub entity_type: Types,
 }
 
 impl Index {
