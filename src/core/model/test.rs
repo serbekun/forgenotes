@@ -1,6 +1,7 @@
 //! note file DTO (main kind of file)
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
+use crate::core::model::types::*;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Test {
@@ -37,4 +38,9 @@ pub enum Problem {
         answer: String,
         hint: Option<String>,
     },
+}
+
+impl HasId for Test {
+    fn id(&self) -> Uuid { self.id }
+    fn entity_type() -> Types { Types::Test }
 }

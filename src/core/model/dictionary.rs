@@ -1,8 +1,9 @@
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
+use crate::core::model::types::*;
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct TranslationEntry {
+pub struct Dictionary {
     pub id: Uuid,
     pub source_language: String,
     pub translate_language: String,
@@ -22,4 +23,9 @@ pub struct Metadata {
     pub tests: Vec<Uuid>,
     pub dictionary: Vec<Uuid>,
     pub attachments: Vec<Uuid>,
+}
+
+impl HasId for Dictionary {
+    fn id(&self) -> Uuid { self.id }
+    fn entity_type() -> Types { Types::Dictionary }
 }
