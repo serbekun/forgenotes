@@ -20,10 +20,9 @@ impl InitInterface for InitInfrastructureFs {
         let base_path = self.base_path.to_string_lossy().to_string();
         let vaults = Vaults::new(base_path);
 
-        for path in vaults.all_paths() {
-            create_dir_all(&path).map_err(|err| {
-                format!("failed to create directory {}: {err}", path.display())
-            })?;
+        for path in vaults.all_dir_paths() {
+            create_dir_all(&path)
+                .map_err(|err| format!("failed to create directory {}: {err}", path.display()))?;
         }
 
         Ok(())
