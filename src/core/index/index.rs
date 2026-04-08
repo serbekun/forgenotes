@@ -1,8 +1,8 @@
+use std::collections::HashMap;
+use std::path::PathBuf;
+use std::fs;
 
 use bimap::BiHashMap;
-use std::collections::HashMap;
-use std::fs;
-use std::path::PathBuf;
 use uuid::Uuid;
 
 use crate::core::index::index_entry::IndexEntry;
@@ -66,20 +66,54 @@ impl Index {
     }
 
     ///
-    /// Add uuid to index registry
+    /// Add uuid to index registry.
     ///
-    /// #
+    /// # Arguments
+    /// * `uuid` entity object uuid.
+    /// * `index_entry` entity metadata for index.
     ///
+    /// # Example
+    /// ```
+    /// let uuid: Uuid = Uuid::new_v4();
     ///
-    pub fn add_uuid(&mut self, uuid: Uuid, index_entry: IndexEntry) {
+    /// // making data that will be included to index
+    /// let index_entry: IndexEntry = IndexEntry {
+    ///     path_buf: PathBuf::from("relative/path/to/entity.json"),
+    ///     entity: Entity::Note,
+    /// };
+    ///
+    /// // building path to index file
+    /// let base_path = "test_vaults";
+    /// let vaults = Vaults::new(base_path);
+    /// let path_to_index_file = PathBuf::from(vaults.index_path());
+    ///
+    /// // call save method
+    /// let index = Index::new(path_to_index_file.clone());
+    /// index.add_uuid(uuid, index_entry);
+    ///
+    /// assert!(index_entry, index.get_by_uuid(uuid));
+    ///
+    /// ```
+    pub fn add_index(&mut self, uuid: Uuid, index_entry: IndexEntry) {
         let _ = self.index.insert(uuid, index_entry);
     }
 
-    pub fn remove_uuid(&mut self, uuid: &Uuid) {
+    ///
+    /// Remove index by uuid from index.
+    ///
+    /// # Arguments
+    /// * `uuid` uuid of object that will be deleted.
+    ///
+    pub fn remove_index_by_uuid(&mut self, uuid: &Uuid) {
         let _ = self.index.remove_by_left(uuid);
     }
 
-    pub fn remove_path(&mut self, path: &PathBuf) {
+    /// Remove index by path from index.
+    ///
+    /// # Arguments
+    /// * `path` PathBuf object, path to relative object.
+    ///
+    pub fn remove_index_by_path(&mut self, path: &PathBuf) {
         let uuid_to_remove = self
             .index
             .iter()
@@ -90,18 +124,35 @@ impl Index {
         }
     }
 
-
-    pub fn get_by_uuid(&self, uuid: &Uuid) -> Option<&IndexEntry> {
+    ///
+    /// Return index entity by uuid.
+    ///
+    /// # Arguments
+    /// * `uuid` uuid of object that will be uuid.
+    ///
+    ///
+    pub fn get_entity_by_uuid(&self, uuid: &Uuid) -> Option<&IndexEntry> {
         self.index.get_by_left(uuid)
     }
 
-    pub fn get_by_path(&self, path: &PathBuf) -> Option<&Uuid> {
+    ///
+    /// Returns index entity uuid by relative path to entity
+    ///
+    /// # Arguments
+    /// * `path`: PathBuf relative path to entity
+    pub fn get_uuid_by_path(&self, path: &PathBuf) -> Option<&Uuid> {
         self.index
             .iter()
             .find(|(_, entry)| &entry.path == path)
             .map(|(uuid, _)| uuid)
     }
 
+    ///
+    /// Help function for load index hashmap from file.
+    ///
+    /// # Arguments
+    /// * `path` PathBuf path to index.json where saved index hashmap.
+    ///
     fn read_index_hash_map_from_file(
         path: &PathBuf,
     ) -> Result<BiHashMap<Uuid, IndexEntry>, Box<dyn std::error::Error>> {

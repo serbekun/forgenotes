@@ -1,6 +1,8 @@
-use crate::core::model::types::Types;
-use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
+
+use serde::{Deserialize, Serialize};
+
+use crate::core::model::types::Types;
 
 #[derive(Serialize, Deserialize, Clone, PartialEq, Eq, Hash)]
 pub struct IndexEntry {

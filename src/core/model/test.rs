@@ -14,6 +14,15 @@ pub struct Test {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+pub struct TestDraft {
+    pub title: String,
+    pub note_uuids: Vec<Uuid>,
+    pub dictionary_uuids: Vec<Uuid>,
+    pub created_at: String,
+    pub problems: Vec<Problem>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
 #[serde(tag = "problem_type")]
 pub enum Problem {
     #[serde(rename = "multiple_choice")]
@@ -46,5 +55,20 @@ impl HasId for Test {
     }
     fn entity_type() -> Types {
         Types::Test
+    }
+}
+
+impl FromDraft for Test {
+    type Draft = TestDraft;
+
+    fn from_draft(draft: Self::Draft, id: Uuid) -> Self {
+        Self {
+            id,
+            title: draft.title,
+            note_uuids: draft.note_uuids,
+            dictionary_uuids: draft.dictionary_uuids,
+            created_at: draft.created_at,
+            problems: draft.problems,
+        }
     }
 }

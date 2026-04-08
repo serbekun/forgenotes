@@ -1,7 +1,11 @@
+use std::path::PathBuf;
+
+use serde::Serialize;
+use uuid::Uuid;
+
+use crate::core::model::types::{FromDraft, HasId};
 use crate::core::repository::repository_errors::RepositoryError;
 use crate::core::index::index_ref::IndexRef;
-use std::path::PathBuf;
-use uuid::Uuid;
 
 pub trait Repository<'a> {
     type Entity;
@@ -26,11 +30,43 @@ pub trait Repository<'a> {
     fn get_by_uuid(&self, uuid: Uuid) -> Result<Self::Entity, RepositoryError>;
 
     ///
-    /// Add note file to registry
+    /// Create entity from draft (without id). Repository generates UUID.
     ///
     /// # Arguments
-    /// * `path` relative path to note.
-    /// * `entity` note object that will be saved.
+    /// * `path` relative path to entity file.
+    /// * `draft` entity data without id.
     ///
-    fn add_file(&mut self, path: PathBuf, entity: Self::Entity);
+    fn create(
+        &mut self,
+        path: PathBuf,
+        draft: <Self::Entity as FromDraft>::Draft,
+    ) -> Result<Self::Entity, RepositoryError>
+    where
+        Self::Entity: FromDraft + Serialize;
+
+    ///
+    /// Update entity file on disk using its id and stored index path.
+    ///
+    /// # Arguments
+    /// * `entity` object with existing id.
+    ///
+    fn update(&mut self, entity: Self::Entity) -> Result<(), RepositoryError>
+    where
+        Self::Entity: HasId + Serialize;
+
+    ///
+    /// Remove entity file from registry and disk.
+    /// 
+    /// # Arguments
+    /// * `uuid` entity uuid.
+    /// 
+    fn remove_file_by_uuid(&mut self, uuid: Uuid) -> Result<(), RepositoryError>;
+
+    ///
+    /// Remove entity file from registry and disk.
+    /// 
+    /// # Arguments
+    /// * `path` relative path to file.
+    /// 
+    fn remove_file_by_path(&mut self, path: &PathBuf) -> Result<(), RepositoryError>;
 }

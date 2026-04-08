@@ -14,13 +14,21 @@ pub struct Note {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct NoteDraft {
+    pub content: String,
+    pub title: String,
+    pub description: String,
+    pub metadata: NoteMetadata,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct NoteMetadata {
     /// metadata for note
     pub tags: Vec<String>,
     pub links: Vec<Uuid>,
     pub tests: Vec<Uuid>,
     pub dictionary: Vec<Uuid>,
-    pub attachemnts: Vec<Uuid>,
+    pub attachments: Vec<Uuid>,
     pub created_at: chrono::DateTime<chrono::Utc>,
 }
 
@@ -30,5 +38,19 @@ impl HasId for Note {
     }
     fn entity_type() -> Types {
         Types::Note
+    }
+}
+
+impl FromDraft for Note {
+    type Draft = NoteDraft;
+
+    fn from_draft(draft: Self::Draft, id: Uuid) -> Self {
+        Self {
+            id,
+            content: draft.content,
+            title: draft.title,
+            description: draft.description,
+            metadata: draft.metadata,
+        }
     }
 }

@@ -1,7 +1,8 @@
-use crate::init::init_interface::InitInterface;
-use crate::path::vaults::Vaults;
 use std::fs::create_dir_all;
 use std::path::PathBuf;
+
+use crate::init::init_interface::InitInterface;
+use crate::path::vaults::Vaults;
 
 pub struct InitInfrastructureFs {
     base_path: PathBuf,

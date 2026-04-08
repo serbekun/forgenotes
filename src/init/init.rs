@@ -1,6 +1,7 @@
+use std::env;
+
 use crate::init::infrastructure::fs::init_infrastructure_fs::InitInfrastructureFs;
 use crate::init::init_interface::InitInterface;
-use std::env;
 
 ///
 /// Init infrastructure for program.
