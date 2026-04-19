@@ -3,7 +3,7 @@
 use std::path::PathBuf;
 
 pub struct Vaults {
-    base_path: String,
+    base_path: PathBuf,
 }
 
 impl Vaults {
@@ -11,38 +11,35 @@ impl Vaults {
     ///
     /// # Arguments
     /// * `base_path` base folder path.
-    ///
-    /// # Warning
-    /// * `base_path` give string without `/` in end.
-    pub fn new(base_path: impl Into<String>) -> Self {
+    pub fn new(base_path: impl Into<PathBuf>) -> Self {
         Self {
             base_path: base_path.into(),
         }
     }
 
     /// Return vaults base path
-    pub fn base_path(&self) -> &str {
+    pub fn base_path(&self) -> &PathBuf {
         &self.base_path
     }
 
     /// Return formatted path to notes with included base path
-    pub fn notes_path(&self) -> String {
-        format!("{}/notes", self.base_path())
+    pub fn notes_path(&self) -> PathBuf {
+        self.base_path.join("notes")
     }
 
     /// Return formatted path to tests with included base path
-    pub fn tests_path(&self) -> String {
-        format!("{}/tests", self.base_path())
+    pub fn tests_path(&self) -> PathBuf {
+        self.base_path.join("tests")
     }
 
-    /// Return formatted path to tests with included base path
-    pub fn dictionary_path(&self) -> String {
-        format!("{}/dictionary", self.base_path())
+    /// Return formatted path to dictionary with included base path
+    pub fn dictionary_path(&self) -> PathBuf {
+        self.base_path.join("dictionary")
     }
 
     /// Return formatted path to index file with included base path
-    pub fn index_path(&self) -> String {
-        format!("{}/index.json", self.base_path())
+    pub fn index_path(&self) -> PathBuf {
+        self.base_path.join("index.json")
     }
 
     ///

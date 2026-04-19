@@ -29,21 +29,18 @@ pub struct DictionaryDraft {
     pub metadata: Metadata,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct Metadata {
-    pub tags: Vec<Uuid>,
-    pub notes: Vec<Uuid>,
-    pub tests: Vec<Uuid>,
-    pub dictionary: Vec<Uuid>,
-    pub attachments: Vec<Uuid>,
-}
-
 impl HasId for Dictionary {
     fn id(&self) -> Uuid {
         self.id
     }
     fn entity_type() -> Types {
         Types::Dictionary
+    }
+    fn metadata(&self) -> &Metadata {
+        &self.metadata
+    }
+    fn metadata_mut(&mut self) -> &mut Metadata {
+        &mut self.metadata
     }
 }
 

@@ -3,11 +3,11 @@ use std::path::PathBuf;
 use serde::Serialize;
 use uuid::Uuid;
 
+use crate::core::error::CoreError;
+use crate::core::index::IndexRef;
 use crate::core::model::types::{FromDraft, HasId};
-use crate::core::repository::repository_errors::RepositoryError;
-use crate::core::index::index_ref::IndexRef;
 
-pub trait Repository<'a> {
+pub trait EntityRepository<'a> {
     type Entity;
 
     fn new(index: &'a IndexRef) -> Self;
@@ -25,9 +25,9 @@ pub trait Repository<'a> {
     /// Note object with uuid that be given in parameters
     ///
     /// # Error
-    /// [crate::core::repository::repository_errors]
+    /// [crate::core::error::CoreError]
     ///
-    fn get_by_uuid(&self, uuid: Uuid) -> Result<Self::Entity, RepositoryError>;
+    fn get_by_uuid(&self, uuid: Uuid) -> Result<Self::Entity, CoreError>;
 
     ///
     /// Create entity from draft (without id). Repository generates UUID.
@@ -40,7 +40,7 @@ pub trait Repository<'a> {
         &mut self,
         path: PathBuf,
         draft: <Self::Entity as FromDraft>::Draft,
-    ) -> Result<Self::Entity, RepositoryError>
+    ) -> Result<Self::Entity, CoreError>
     where
         Self::Entity: FromDraft + Serialize;
 
@@ -50,7 +50,7 @@ pub trait Repository<'a> {
     /// # Arguments
     /// * `entity` object with existing id.
     ///
-    fn update(&mut self, entity: Self::Entity) -> Result<(), RepositoryError>
+    fn update(&mut self, entity: Self::Entity) -> Result<(), CoreError>
     where
         Self::Entity: HasId + Serialize;
 
@@ -60,7 +60,7 @@ pub trait Repository<'a> {
     /// # Arguments
     /// * `uuid` entity uuid.
     /// 
-    fn remove_file_by_uuid(&mut self, uuid: Uuid) -> Result<(), RepositoryError>;
+    fn remove_file_by_uuid(&mut self, uuid: Uuid) -> Result<(), CoreError>;
 
     ///
     /// Remove entity file from registry and disk.
@@ -68,5 +68,5 @@ pub trait Repository<'a> {
     /// # Arguments
     /// * `path` relative path to file.
     /// 
-    fn remove_file_by_path(&mut self, path: &PathBuf) -> Result<(), RepositoryError>;
+    fn remove_file_by_path(&mut self, path: &PathBuf) -> Result<(), CoreError>;
 }

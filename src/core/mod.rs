@@ -2,3 +2,4 @@
 pub mod index;
 pub mod model;
 pub mod repository;
+pub mod error;

@@ -1,4 +1,4 @@
-//! note file DTO (main kind of file)
+//! test file DTO
 use crate::core::model::types::*;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -7,19 +7,15 @@ use uuid::Uuid;
 pub struct Test {
     pub id: Uuid,
     pub title: String,
-    pub note_uuids: Vec<Uuid>,
-    pub dictionary_uuids: Vec<Uuid>,
-    pub created_at: String,
     pub problems: Vec<Problem>,
+    pub metadata: Metadata,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct TestDraft {
     pub title: String,
-    pub note_uuids: Vec<Uuid>,
-    pub dictionary_uuids: Vec<Uuid>,
-    pub created_at: String,
     pub problems: Vec<Problem>,
+    pub metadata: Metadata,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -56,6 +52,12 @@ impl HasId for Test {
     fn entity_type() -> Types {
         Types::Test
     }
+    fn metadata(&self) -> &Metadata {
+        &self.metadata
+    }
+    fn metadata_mut(&mut self) -> &mut Metadata {
+        &mut self.metadata
+    }
 }
 
 impl FromDraft for Test {
@@ -65,10 +67,8 @@ impl FromDraft for Test {
         Self {
             id,
             title: draft.title,
-            note_uuids: draft.note_uuids,
-            dictionary_uuids: draft.dictionary_uuids,
-            created_at: draft.created_at,
             problems: draft.problems,
+            metadata: draft.metadata,
         }
     }
 }
