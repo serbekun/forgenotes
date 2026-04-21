@@ -1,4 +1,4 @@
-use crate::core::model::types::Types;
+use crate::domain::model::types::Types;
 use std::fmt;
 
 #[derive(Debug)]
@@ -22,7 +22,11 @@ impl fmt::Display for CoreError {
             CoreError::IndexCorrupted => write!(f, "Index is corrupted"),
             CoreError::IndexSave(msg) => write!(f, "Failed to save index: {}", msg),
             CoreError::TypeMismatch { expected, found } => {
-                write!(f, "Type mismatch: expected {:?}, found {:?}", expected, found)
+                write!(
+                    f,
+                    "Type mismatch: expected {:?}, found {:?}",
+                    expected, found
+                )
             }
         }
     }

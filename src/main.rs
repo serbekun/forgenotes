@@ -1,6 +1,6 @@
 pub mod core;
-pub mod init;
 pub mod domain;
+pub mod init;
 
 fn main() {
     println!("forge notes");

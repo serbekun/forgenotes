@@ -49,11 +49,6 @@ impl Vaults {
     /// Vec<PathBuf> with all folders paths.
     ///
     pub fn all_dir_paths(&self) -> Vec<PathBuf> {
-        vec![
-            self.notes_path().into(),
-            self.tests_path().into(),
-            self.dictionary_path().into(),
-            self.index_path().into(),
-        ]
+        vec![self.notes_path(), self.tests_path(), self.dictionary_path()]
     }
 }

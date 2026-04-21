@@ -1,5 +1,5 @@
 //! note file DTO (main kind of file)
-use crate::core::model::types::*;
+use crate::domain::model::types::*;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -10,7 +10,7 @@ pub struct Note {
     pub content: String, // note markdown plain text
     pub title: String,
     pub description: String,
-    pub metadata: Metadata,
+    pub metadata: NoteMetadata,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -18,7 +18,18 @@ pub struct NoteDraft {
     pub content: String,
     pub title: String,
     pub description: String,
-    pub metadata: Metadata,
+    pub metadata: NoteMetadata,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct NoteMetadata {
+    /// metadata for note
+    pub tags: Vec<String>,
+    pub links: Vec<Uuid>,
+    pub tests: Vec<Uuid>,
+    pub dictionary: Vec<Uuid>,
+    pub attachments: Vec<Uuid>,
+    pub created_at: chrono::DateTime<chrono::Utc>,
 }
 
 impl HasId for Note {
@@ -27,12 +38,6 @@ impl HasId for Note {
     }
     fn entity_type() -> Types {
         Types::Note
-    }
-    fn metadata(&self) -> &Metadata {
-        &self.metadata
-    }
-    fn metadata_mut(&mut self) -> &mut Metadata {
-        &mut self.metadata
     }
 }
 

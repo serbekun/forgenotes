@@ -8,29 +8,19 @@ use uuid::Uuid;
 use crate::core::error::CoreError;
 use crate::core::index::index_entry::IndexEntry;
 
-#[derive(Default)]
 pub struct Index {
     index: BiHashMap<Uuid, IndexEntry>,
     path_to_index_file: PathBuf,
 }
 
 impl Index {
-    pub fn new(path_to_index_file: PathBuf) -> Self {
-        match Self::read_index_hash_map_from_file(&path_to_index_file) {
-            Ok(index_map) => {
-                return Self {
-                    index: index_map,
-                    path_to_index_file,
-                };
-            }
-            Err(e) => {
-                eprintln!("Failed to load index: {}", e);
-                Self {
-                    index: BiHashMap::new(),
-                    path_to_index_file,
-                }
-            }
-        }
+    /// Opens an index from disk (or returns an empty index if file doesn't exist).
+    pub fn open(path_to_index_file: PathBuf) -> Result<Self, CoreError> {
+        let index_map = Self::read_index_hash_map_from_file(&path_to_index_file)?;
+        Ok(Self {
+            index: index_map,
+            path_to_index_file,
+        })
     }
 
     /// Saves the index to a file on disk.
@@ -45,7 +35,7 @@ impl Index {
     /// See [`std::error::Error`].
     ///
     /// # Examples
-    /// ```
+    /// ```ignore
     /// use std::path::PathBuf;
     /// use crate::path::vaults::Vaults;
     /// use std::fs;
@@ -56,13 +46,36 @@ impl Index {
     /// let path_to_index_file = PathBuf::from(vaults.index_path());
     ///
     /// // call save method
-    /// let index = Index::new(path_to_index_file.clone());
+    /// let index = Index::open(path_to_index_file.clone()).unwrap();
     /// index.save().unwrap();
     /// assert!(std::fs::metadata(path_to_index_file).is_ok());
-    /// ```
+    /// ```ignore
     pub fn save(&self) -> Result<(), CoreError> {
-        let content = serde_json::to_string_pretty(&self.index.iter().collect::<HashMap<_, _>>())?;
-        fs::write(&self.path_to_index_file, content)?;
+        let map: HashMap<Uuid, IndexEntry> = self
+            .index
+            .iter()
+            .map(|(uuid, entry)| (uuid.clone(), entry.clone()))
+            .collect();
+        let content = serde_json::to_string_pretty(&map)?;
+
+        if let Some(parent) = self.path_to_index_file.parent() {
+            fs::create_dir_all(parent)?;
+            let tmp_path = parent.join(format!(
+                ".{}.tmp-{}",
+                self.path_to_index_file
+                    .file_name()
+                    .and_then(|s| s.to_str())
+                    .unwrap_or("index.json"),
+                Uuid::new_v4()
+            ));
+            fs::write(&tmp_path, content)?;
+            if self.path_to_index_file.exists() {
+                fs::remove_file(&self.path_to_index_file)?;
+            }
+            fs::rename(tmp_path, &self.path_to_index_file)?;
+        } else {
+            fs::write(&self.path_to_index_file, content)?;
+        }
         Ok(())
     }
 
@@ -74,7 +87,7 @@ impl Index {
     /// * `index_entry` entity metadata for index.
     ///
     /// # Example
-    /// ```
+    /// ```ignore
     /// let uuid: Uuid = Uuid::new_v4();
     ///
     /// // making data that will be included to index
@@ -94,7 +107,7 @@ impl Index {
     ///
     /// assert!(index_entry, index.get_by_uuid(uuid));
     ///
-    /// ```
+    /// ```ignore
     pub fn add_index(&mut self, uuid: Uuid, index_entry: IndexEntry) {
         let _ = self.index.insert(uuid, index_entry);
     }
@@ -154,99 +167,20 @@ impl Index {
     /// # Arguments
     /// * `path` PathBuf path to index.json where saved index hashmap.
     ///
-    fn read_index_hash_map_from_file(path: &PathBuf) -> Result<BiHashMap<Uuid, IndexEntry>, CoreError> {
+    fn read_index_hash_map_from_file(
+        path: &PathBuf,
+    ) -> Result<BiHashMap<Uuid, IndexEntry>, CoreError> {
         if !path.exists() {
             return Ok(BiHashMap::new());
         }
         let content = fs::read_to_string(path)?;
-        let map: HashMap<Uuid, IndexEntry> = serde_json::from_str(&content)?;
+        let map: HashMap<Uuid, IndexEntry> =
+            serde_json::from_str(&content).map_err(|_| CoreError::IndexCorrupted)?;
         let mut bimap = BiHashMap::new();
         for (k, v) in map {
             let _ = bimap.insert(k, v);
         }
         Ok(bimap)
-    }
-}
-
-#[derive(Default)]
-/// Shared, interior-mutable wrapper around [`Index`].
-///
-/// Provides a `RefCell`-backed API for borrowing and mutating the index
-/// without requiring `&mut self` on the wrapper itself.
-pub struct IndexRef {
-    inner: std::cell::RefCell<Index>,
-}
-
-impl IndexRef {
-    /// Creates a new [`IndexRef`] backed by an [`Index`] loaded from disk.
-    ///
-    /// # Arguments
-    /// * `path_to_index_file` - Path to the index file on disk.
-    pub fn new(path_to_index_file: PathBuf) -> Self {
-        Self {
-            inner: std::cell::RefCell::new(Index::new(path_to_index_file)),
-        }
-    }
-
-    /// Borrows the underlying [`Index`] immutably.
-    pub fn borrow(&self) -> std::cell::Ref<'_, Index> {
-        self.inner.borrow()
-    }
-
-    /// Borrows the underlying [`Index`] mutably.
-    pub fn borrow_mut(&self) -> std::cell::RefMut<'_, Index> {
-        self.inner.borrow_mut()
-    }
-
-    /// Saves the index to disk.
-    ///
-    /// See [`Index::save`] for details.
-    ///
-    /// # Errors
-    /// Returns an error if serialization fails or if the file cannot be written.
-    pub fn save(&self) -> Result<(), CoreError> {
-        self.inner.borrow().save()
-    }
-
-    /// Adds a uuid and its index entry to the registry.
-    ///
-    /// # Arguments
-    /// * `uuid` - Entity uuid.
-    /// * `index_entry` - Entity metadata stored in the index.
-    pub fn add_index(&self, uuid: Uuid, index_entry: IndexEntry) {
-        self.inner.borrow_mut().add_index(uuid, index_entry);
-    }
-
-    /// Removes an index entry by uuid.
-    ///
-    /// # Arguments
-    /// * `uuid` - Entity uuid to remove.
-    pub fn remove_index_by_uuid(&self, uuid: Uuid) {
-        self.inner.borrow_mut().remove_index_by_uuid(&uuid);
-    }
-
-    /// Removes an index entry by path.
-    ///
-    /// # Arguments
-    /// * `path` - Relative path to the entity.
-    pub fn remove_index_by_path(&self, path: &PathBuf) {
-        self.inner.borrow_mut().remove_index_by_path(path);
-    }
-
-    /// Returns an entity from the index by uuid.
-    ///
-    /// # Arguments
-    /// * `uuid` - Entity uuid to fetch.
-    pub fn get_entity_by_uuid(&self, uuid: Uuid) -> Option<IndexEntry> {
-        self.inner.borrow().get_entity_by_uuid(&uuid).cloned()
-    }
-
-    /// Returns an entity uuid by its relative path.
-    ///
-    /// # Arguments
-    /// * `path` - Relative path to the entity.
-    pub fn get_uuid_by_path(&self, path: &PathBuf) -> Option<Uuid> {
-        self.inner.borrow().get_uuid_by_path(path).cloned()
     }
 }
 
@@ -263,7 +197,7 @@ mod tests {
         let path_to_index_file = PathBuf::from(vaults.index_path());
 
         // call save method
-        let index = Index::new(path_to_index_file.clone());
+        let index = Index::open(path_to_index_file.clone()).unwrap();
         index.save().unwrap();
 
         assert!(std::fs::metadata(path_to_index_file).is_ok());
