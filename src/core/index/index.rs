@@ -7,6 +7,7 @@ use uuid::Uuid;
 
 use crate::core::error::CoreError;
 use crate::core::index::index_entry::IndexEntry;
+use crate::domain::model::types::Types;
 
 pub struct Index {
     index: BiHashMap<Uuid, IndexEntry>,
@@ -154,6 +155,14 @@ impl Index {
     ///
     /// # Arguments
     /// * `path`: PathBuf relative path to entity
+    pub fn get_all_uuids_by_type(&self, entity_type: Types) -> Vec<Uuid> {
+        self.index
+            .iter()
+            .filter(|(_, entry)| entry.entity_type == entity_type)
+            .map(|(uuid, _)| *uuid)
+            .collect()
+    }
+
     pub fn get_uuid_by_path(&self, path: &PathBuf) -> Option<&Uuid> {
         self.index
             .iter()

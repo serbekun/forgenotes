@@ -180,6 +180,13 @@ impl CoreRepo {
         Ok(())
     }
 
+    pub fn get_all_uuids_by_type<T>(&self) -> Vec<Uuid>
+    where
+        T: HasId,
+    {
+        self.index.get_all_uuids_by_type(T::entity_type())
+    }
+
     /// Removes an entity by its relative path (relative to vault base).
     pub fn remove_by_path<T>(&mut self, relative_path: PathBuf) -> Result<(), CoreError>
     where

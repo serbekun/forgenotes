@@ -77,6 +77,38 @@ impl FilesService {
         self.repo.remove_by_uuid::<Dictionary>(uuid)
     }
 
+    // All uuids
+    pub fn all_uuids(&self) -> Vec<Uuid> {
+        let mut uuids = self.repo.get_all_uuids_by_type::<Note>();
+        uuids.extend(self.repo.get_all_uuids_by_type::<Test>());
+        uuids.extend(self.repo.get_all_uuids_by_type::<Dictionary>());
+        uuids
+    }
+
+    pub fn all_notes(&self) -> Vec<Note> {
+        let uuids = self.repo.get_all_uuids_by_type::<Note>();
+        uuids
+            .into_iter()
+            .filter_map(|uuid| self.repo.get_by_uuid::<Note>(uuid).ok())
+            .collect()
+    }
+
+    pub fn all_tests(&self) -> Vec<Test> {
+        let uuids = self.repo.get_all_uuids_by_type::<Test>();
+        uuids
+            .into_iter()
+            .filter_map(|uuid| self.repo.get_by_uuid::<Test>(uuid).ok())
+            .collect()
+    }
+
+    pub fn all_dictionaries(&self) -> Vec<Dictionary> {
+        let uuids = self.repo.get_all_uuids_by_type::<Dictionary>();
+        uuids
+            .into_iter()
+            .filter_map(|uuid| self.repo.get_by_uuid::<Dictionary>(uuid).ok())
+            .collect()
+    }
+
     // Escape hatch (advanced)
     pub fn create_at_path<T>(&mut self, relative_path: PathBuf, draft: T::Draft) -> Result<T, CoreError>
     where
